@@ -232,6 +232,30 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_cliques: {
+        Row: {
+          clicado_em: string
+          contato_id: string
+          id: string
+          ministerio_id: string
+          profile_id: string
+        }
+        Insert: {
+          clicado_em?: string
+          contato_id: string
+          id?: string
+          ministerio_id: string
+          profile_id: string
+        }
+        Update: {
+          clicado_em?: string
+          contato_id?: string
+          id?: string
+          ministerio_id?: string
+          profile_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -357,3 +381,6 @@ export type Contato = Tables<"contatos">
 export type KanbanColuna = Tables<"kanban_colunas">
 export type CronometroEstado = Tables<"cronometro_estado">
 export type CronometroImagem = Tables<"cronometro_imagens">
+
+export type UltimoClique = { clicado_em: string; perfil_nome: string }
+export type UltimosCliquesMap = Record<string, UltimoClique>

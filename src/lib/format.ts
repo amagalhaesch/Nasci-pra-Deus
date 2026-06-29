@@ -11,10 +11,28 @@ export function celularApenasDigitos(celular: string): string {
   return celular.replace(/\D/g, "");
 }
 
+export function aplicarMascaraCelular(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  if (d.length === 0) return "";
+  if (d.length <= 2) return `(${d}`;
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
 export function whatsAppLink(celular: string): string {
   const digitos = celularApenasDigitos(celular);
   const comDDI = digitos.startsWith("55") ? digitos : `55${digitos}`;
   return `https://wa.me/${comDDI}`;
+}
+
+export function mascararCelular(celular: string): string {
+  const d = celularApenasDigitos(celular);
+  if (d.length >= 6) {
+    const ddd = d.slice(0, 2);
+    const last4 = d.slice(-4);
+    return `(${ddd}) *****-${last4}`;
+  }
+  return "***********";
 }
 
 export function formatarCelular(celular: string): string {

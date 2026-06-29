@@ -15,25 +15,22 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
-import {
-  idadeEmAnos,
-  formatarCelular,
-  formatarData,
-  whatsAppLink,
-} from "@/lib/format";
-import { MessageCircle } from "lucide-react";
+import { idadeEmAnos, formatarData } from "@/lib/format";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { cn } from "@/lib/utils";
-import type { Contato, KanbanColuna } from "@/lib/database.types";
+import type { Contato, KanbanColuna, UltimosCliquesMap } from "@/lib/database.types";
 
 export default function ContatoKanban({
   contatos,
   colunas,
   ministerioId,
+  ultimosCliques,
   setContatos,
 }: {
   contatos: Contato[];
   colunas: KanbanColuna[];
   ministerioId: string;
+  ultimosCliques: UltimosCliquesMap;
   setContatos: React.Dispatch<React.SetStateAction<Contato[]>>;
 }) {
   const supabase = createClient();
@@ -67,8 +64,6 @@ export default function ContatoKanban({
     }
   }
 
-  void ministerioId; // assinatura mantida pra futura granularidade
-
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -77,6 +72,8 @@ export default function ContatoKanban({
             key={coluna.id}
             coluna={coluna}
             contatos={contatos.filter((c) => c.coluna_id === coluna.id)}
+            ministerioId={ministerioId}
+            ultimosCliques={ultimosCliques}
           />
         ))}
         {colunas.length === 0 && (
@@ -92,34 +89,59 @@ export default function ContatoKanban({
 function Coluna({
   coluna,
   contatos,
+  ministerioId,
+  ultimosCliques,
 }: {
   coluna: KanbanColuna;
   contatos: Contato[];
+  ministerioId: string;
+  ultimosCliques: UltimosCliquesMap;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: coluna.id });
 
   return (
-    <div className="flex-shrink-0 w-72">
-      <div className="font-semibold text-sm uppercase tracking-wide mb-2 flex items-center justify-between">
+    <div className="flex-shrink-0 w-72 rounded-xl border bg-muted/40 p-3">
+      <div className="font-semibold text-sm uppercase tracking-wide mb-3 flex items-center justify-between">
         <span>{coluna.nome}</span>
         <Badge variant="secondary">{contatos.length}</Badge>
       </div>
       <div
         ref={setNodeRef}
         className={cn(
-          "space-y-2 min-h-[200px] rounded-lg border-2 border-dashed p-2 transition-colors",
+          "space-y-2 min-h-[200px] rounded-lg border-2 border-dashed p-1 transition-colors",
           isOver ? "border-primary bg-primary/5" : "border-transparent",
         )}
       >
         {contatos.map((c) => (
-          <ContatoCard key={c.id} contato={c} />
+          <ContatoCard
+            key={c.id}
+            contato={c}
+            ministerioId={ministerioId}
+            ultimoClique={ultimosCliques[c.id]}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function ContatoCard({ contato }: { contato: Contato }) {
+function formatarUltimoClique(clicado_em: string, perfil_nome: string): string {
+  const d = new Date(clicado_em);
+  const dia = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const primeiroNome = perfil_nome.split(" ")[0];
+  return `${dia} às ${hora} · ${primeiroNome}`;
+}
+
+function ContatoCard({
+  contato,
+  ministerioId,
+  ultimoClique,
+}: {
+  contato: Contato;
+  ministerioId: string;
+  ultimoClique?: { clicado_em: string; perfil_nome: string };
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: contato.id });
 
@@ -141,24 +163,25 @@ function ContatoCard({ contato }: { contato: Contato }) {
       {...attributes}
       {...listeners}
     >
-      <CardContent className="p-3 space-y-1.5">
-        <div className="font-medium text-sm">{contato.nome_completo}</div>
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{idadeEmAnos(contato.data_nascimento)} anos</span>
-          <a
-            href={whatsAppLink(contato.celular)}
-            target="_blank"
-            rel="noopener noreferrer"
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-medium text-sm truncate">{contato.nome_completo}</p>
+          <WhatsAppButton
+            celular={contato.celular}
+            contatoId={contato.id}
+            ministerioId={ministerioId}
+            className="size-7 shrink-0"
             onPointerDown={(e) => e.stopPropagation()}
-            className="text-green-600 hover:text-green-700 flex items-center gap-1"
-          >
-            <MessageCircle className="size-3" />
-            {formatarCelular(contato.celular)}
-          </a>
+          />
         </div>
-        <div className="text-xs text-muted-foreground/70">
-          Cadastro: {formatarData(contato.criado_em)}
+        <div className="text-xs text-muted-foreground">
+          {idadeEmAnos(contato.data_nascimento)} anos · Cadastro: {formatarData(contato.criado_em)}
         </div>
+        {ultimoClique && (
+          <div className="text-xs text-muted-foreground/70 border-t pt-1.5">
+            Último WhatsApp: {formatarUltimoClique(ultimoClique.clicado_em, ultimoClique.perfil_nome)}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

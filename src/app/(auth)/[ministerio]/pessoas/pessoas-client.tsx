@@ -14,6 +14,7 @@ import type {
   Contato,
   KanbanColuna,
   Ministerio,
+  UltimosCliquesMap,
 } from "@/lib/database.types";
 
 export default function PessoasClient({
@@ -21,16 +22,19 @@ export default function PessoasClient({
   contatosIniciais,
   colunasIniciais,
   isMaster,
+  ultimosCliquesIniciais,
 }: {
   ministerio: Ministerio;
   contatosIniciais: Contato[];
   colunasIniciais: KanbanColuna[];
   isMaster: boolean;
+  ultimosCliquesIniciais: UltimosCliquesMap;
 }) {
   const supabase = createClient();
   const [contatos, setContatos] = useState(contatosIniciais);
   const [colunas, setColunas] = useState(colunasIniciais);
   const [colunasOpen, setColunasOpen] = useState(false);
+  const [ultimosCliques, setUltimosCliques] = useState<UltimosCliquesMap>(ultimosCliquesIniciais);
 
   useEffect(() => {
     const channel = supabase
@@ -61,6 +65,30 @@ export default function PessoasClient({
             .select("*")
             .order("ordem");
           setColunas(data ?? []);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "whatsapp_cliques",
+          filter: `ministerio_id=eq.${ministerio.id}`,
+        },
+        async (payload) => {
+          const novo = payload.new as { contato_id: string; clicado_em: string; profile_id: string };
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("nome_completo")
+            .eq("id", novo.profile_id)
+            .single();
+          setUltimosCliques((prev) => ({
+            ...prev,
+            [novo.contato_id]: {
+              clicado_em: novo.clicado_em,
+              perfil_nome: profile?.nome_completo ?? "—",
+            },
+          }));
         },
       )
       .subscribe();
@@ -104,6 +132,7 @@ export default function PessoasClient({
             contatos={contatos}
             colunas={colunas}
             isMaster={isMaster}
+            ministerioId={ministerio.id}
           />
         </TabsContent>
         <TabsContent value="kanban">
@@ -111,6 +140,7 @@ export default function PessoasClient({
             contatos={contatos}
             colunas={colunas}
             ministerioId={ministerio.id}
+            ultimosCliques={ultimosCliques}
             setContatos={setContatos}
           />
         </TabsContent>

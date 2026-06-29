@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { toast } from "sonner";
 import {
   Table,
@@ -27,6 +28,7 @@ import {
   idadeEmAnos,
   whatsAppLink,
   formatarCelular,
+  mascararCelular,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import EditarContatoDialog from "./editar-contato-dialog";
@@ -39,10 +41,12 @@ export default function ContatoLista({
   contatos,
   colunas,
   isMaster,
+  ministerioId,
 }: {
   contatos: Contato[];
   colunas: KanbanColuna[];
   isMaster: boolean;
+  ministerioId: string;
 }) {
   const [busca, setBusca] = useState("");
   const [faixa, setFaixa] = useState<FaixaEtaria>("todos");
@@ -119,7 +123,49 @@ export default function ContatoLista({
         {filtrados.length} de {contatos.length} contato(s)
       </div>
 
-      <Card>
+      {/* Mobile: cards */}
+      <div className="space-y-2 md:hidden">
+        {filtrados.length === 0 && (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Nenhum contato encontrado.
+          </p>
+        )}
+        {filtrados.map((c) => (
+          <Card key={c.id}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium leading-tight">{c.nome_completo}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {idadeEmAnos(c.data_nascimento)} anos ·{" "}
+                    {isMaster ? formatarCelular(c.celular) : mascararCelular(c.celular)}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">{colunaNome(c.coluna_id)}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(c.criado_em).toLocaleDateString("pt-BR")}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <WhatsAppButton celular={c.celular} contatoId={c.id} ministerioId={ministerioId} />
+                  {isMaster && (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => setEditando(c)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <ExcluirBtn id={c.id} nome={c.nome_completo} />
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Desktop: tabela */}
+      <Card className="hidden md:block">
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
@@ -138,7 +184,7 @@ export default function ContatoLista({
                   <TableCell className="font-medium">{c.nome_completo}</TableCell>
                   <TableCell>{idadeEmAnos(c.data_nascimento)}</TableCell>
                   <TableCell className="font-mono text-sm">
-                    {formatarCelular(c.celular)}
+                    {isMaster ? formatarCelular(c.celular) : mascararCelular(c.celular)}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{colunaNome(c.coluna_id)}</Badge>
@@ -147,17 +193,7 @@ export default function ContatoLista({
                     {new Date(c.criado_em).toLocaleDateString("pt-BR")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <a
-                      href={whatsAppLink(c.celular)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(
-                        buttonVariants({ variant: "ghost", size: "icon" }),
-                      )}
-                      title="Abrir WhatsApp"
-                    >
-                      <MessageCircle className="size-4 text-green-600" />
-                    </a>
+                    <WhatsAppButton celular={c.celular} contatoId={c.id} ministerioId={ministerioId} />
                     {isMaster && (
                       <>
                         <Button

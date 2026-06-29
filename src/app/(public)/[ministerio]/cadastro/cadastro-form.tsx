@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cadastrarContato } from "./actions";
-import { formatarCelular } from "@/lib/format";
+import { aplicarMascaraCelular } from "@/lib/format";
 
 export default function CadastroForm({
   ministerioId,
@@ -100,7 +100,7 @@ export default function CadastroForm({
                 autoComplete="tel"
                 placeholder="(11) 99999-9999"
                 value={celular}
-                onChange={(e) => setCelular(formatarCelular(e.target.value))}
+                onChange={(e) => setCelular(aplicarMascaraCelular(e.target.value))}
                 className="h-12 text-base bg-card"
               />
             </div>

@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { editarContato } from "./actions";
+import { aplicarMascaraCelular } from "@/lib/format";
 import type { Contato } from "@/lib/database.types";
 
 export default function EditarContatoDialog({
@@ -31,13 +32,17 @@ export default function EditarContatoDialog({
     if (contato) {
       setNome(contato.nome_completo);
       setData(contato.data_nascimento);
-      setCelular(contato.celular);
+      setCelular(aplicarMascaraCelular(contato.celular));
     }
   }, [contato]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!contato) return;
+    if (celular.replace(/\D/g, "").length !== 11) {
+      toast.error("Celular deve ter 11 dígitos");
+      return;
+    }
     startTransition(async () => {
       try {
         await editarContato({
@@ -84,8 +89,10 @@ export default function EditarContatoDialog({
             <Label htmlFor="ed-celular">Celular</Label>
             <Input
               id="ed-celular"
+              inputMode="tel"
+              placeholder="(11) 99999-9999"
               value={celular}
-              onChange={(e) => setCelular(e.target.value)}
+              onChange={(e) => setCelular(aplicarMascaraCelular(e.target.value))}
               required
             />
           </div>

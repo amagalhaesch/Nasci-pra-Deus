@@ -1,5 +1,6 @@
 import { requireMinisterio } from "@/lib/auth";
 import MinisterioSidebar from "@/components/ministerio-sidebar";
+import BottomNav from "@/components/bottom-nav";
 
 export default async function MinisterioLayout({
   children,
@@ -19,10 +20,11 @@ export default async function MinisterioLayout({
         isMaster={session.isMaster}
       />
       <main className="flex-1 overflow-y-auto bg-background">
-        <div className="p-6 md:p-8">
+        <div className="p-4 pb-20 md:p-8 md:pb-8">
           {children}
         </div>
       </main>
+      <BottomNav ministerio={ministerio} isMaster={session.isMaster} />
     </div>
   );
 }

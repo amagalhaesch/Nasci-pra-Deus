@@ -117,6 +117,20 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@keyframes birthday-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--ring);
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 40%, transparent),
+                0 0 16px color-mix(in oklch, var(--ring) 20%, transparent);
+  }
+}
+
+@theme inline {
+  --animate-birthday-glow: birthday-glow 2s ease-in-out infinite;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

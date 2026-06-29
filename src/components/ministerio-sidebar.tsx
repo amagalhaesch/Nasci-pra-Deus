@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Users, Timer, Shield, LogOut } from "lucide-react";
+import { Users, Timer, Shield, LogOut, Cake } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Ministerio, Profile } from "@/lib/database.types";
@@ -48,6 +48,7 @@ export default function MinisterioSidebar({
 
   const navItems: NavItem[] = [
     { label: "Pessoas", href: `/${ministerio.slug}/pessoas`, icon: Users },
+    { label: "Aniversariantes", href: `/${ministerio.slug}/aniversariantes`, icon: Cake },
     { label: "Cronômetro", href: `/${ministerio.slug}/cronometro/controle`, icon: Timer },
   ];
 
@@ -72,7 +73,7 @@ export default function MinisterioSidebar({
     .toUpperCase();
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-card">
+    <aside className="hidden md:flex h-full w-60 shrink-0 flex-col border-r bg-card">
       {/* Logo */}
       <div className="flex h-14 items-center gap-2.5 border-b px-4">
         <div className="flex size-6 items-center justify-center rounded bg-primary text-[10px] font-bold text-primary-foreground">
