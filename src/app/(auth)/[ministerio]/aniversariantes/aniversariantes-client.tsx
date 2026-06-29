@@ -208,6 +208,7 @@ export default function AniversariantesClient({
                       key={c.id}
                       contato={c}
                       showTodayBadge={isToday(c.data_nascimento)}
+                      ministerioId={ministerio.id}
                     />
                   ))}
                 </div>
