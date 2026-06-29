@@ -33,7 +33,7 @@ export default async function PessoasPage({
       ultimosCliques[c.contato_id] = {
         clicado_em: c.clicado_em,
         perfil_nome:
-          (c.profiles as { nome_completo: string } | null)?.nome_completo ?? "—",
+          (c.profiles as unknown as { nome_completo: string } | null)?.nome_completo ?? "—",
       };
     }
   }
